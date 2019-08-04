@@ -3,6 +3,13 @@ import random
 #beginning balance
 playerBalance = 5
 enemyBalance = 5
+
+playerScore = 0
+enemyScore = 0
+
+playerBet = 0
+enemyBet = 0
+
 again = True
 
 isPlayerTurn = True
@@ -19,17 +26,19 @@ while True:
         print('Not really what I wanted to hear.')
 
 def SetPlayerBet(bal):
+    global playerBet
+
 #runs while this condition is true & until it is broken by 'break'
     while True:
-        bet = input('Enter your bet: ')
+        playerBet = int(input('Enter your bet: '))
         print('.')
         #try loop is accounting for ValueError - in case the user inputs something besides a number
         try:
-            if int(bet) <= 5:
-                print('Your bet is $' + str(bet))
-                bal-=int(bet)
+            if int(playerBet) <= 5:
+                print('Your bet is $' + str(playerBet))
+                bal-=int(playerBet)
                 break
-            elif int(bet) < 1:
+            elif int(playerBet) < 1:
                 print('You have to bet something!')
             else:
                 print("You can't bet that much.")
@@ -40,9 +49,11 @@ def SetPlayerBet(bal):
     print('.')
 
 def SetEnemyBet(bal):
-    b = random.randint(0,5)
-    bal-=b
-    print('Your opponent bet $' + str(b) + '.')
+    global enemyBet
+
+    enemyBet = random.randint(0,5)
+    bal-=enemyBet
+    print('Your opponent bet $' + str(enemyBet) + '.')
     print('They have $' + str(bal) + ' left.')
     print('.')
 
@@ -52,6 +63,9 @@ def RollDice():
 
 #analyze the roll list
 def AnalyzeRoll(inputRoll):
+    global playerScore
+    global enemyScore
+
     inputRoll.sort()
     if isPlayerTurn:
         print('Your roll is: ' + str(inputRoll))
@@ -70,16 +84,20 @@ def AnalyzeRoll(inputRoll):
         elif inputRoll[1] != inputRoll[2]:
             #left pair
             if isPlayerTurn:
-                print('Your score is: ' + str(inputRoll[2]))
+                playerScore = inputRoll[2]
+                print('Your score is: ' + str(playerScore))
             else:
-                print("Your opponent's score is: " + str(inputRoll[2]))
+                enemyScore = inputRoll[2]
+                print("Your opponent's score is: " + str(enemyScore))
             again = False
             return(inputRoll[2])
         elif inputRoll[0] != inputRoll[1]:
             #right pair
             if isPlayerTurn:
+                playerScore = inputRoll[0]
                 print('Your score is: ' + str(inputRoll[0]))
             else:
+                enemyScore = inputRoll[0]
                 print("Your opponent's score is: " + str(inputRoll[0]))
             again = False
             return(inputRoll[0])
@@ -92,8 +110,8 @@ def AnalyzeRoll(inputRoll):
 
 def UpdateScore(score):
     global again
-    global playerScore
-    global r
+    global playerRoll
+    global enemyRoll
 
     if score == -1:
         if isPlayerTurn:
@@ -109,9 +127,25 @@ def UpdateScore(score):
         again = False
     elif score == -3:
         print('Rolling...')
-        r = RollDice()
+        if isPlayerTurn:
+            playerRoll = RollDice()
+        else:
+            enemyRoll = RollDice()
     else:
         again = False
+
+def CompareScores(p,e):
+    global playerBalance
+    global enemyBalance
+
+    if p>e:
+        playerBalance+=playerBet+enemyBet
+    elif e>p:
+        enemyBalance+=enemyBet+playerBet
+    else:
+        print('A tie?')
+    print('Your new total is $' + str(playerBalance))
+    print("Your opponent's new total is $" + str(enemyBalance))
 
 SetPlayerBet(playerBalance)
 SetEnemyBet(enemyBalance)
@@ -120,12 +154,13 @@ while again is True:
     scorecode = AnalyzeRoll(playerRoll)
     UpdateScore(scorecode)
 
-#trying to roll for the enemy - not sure about how to handle this
-#after the again variable is set to false in the above loop
-#i would include it in the above loop, but it requires isPlayerTurn
-#to be false in ordef to succeed
 isPlayerTurn = False
+again = True
 enemyRoll = RollDice()
-while True:
+while again is True:
     scorecode = AnalyzeRoll(enemyRoll)
     UpdateScore(scorecode)
+
+#comparison not working properly - probably something to do with
+#the scope of the score or balance variables
+CompareScores(playerScore, enemyScore)
